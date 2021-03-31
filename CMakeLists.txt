@@ -87,6 +87,8 @@ set(stdc_header_list "${stdc_header_list};stddef.h;stdio.h;stdlib.h;string.h")
 set(stdc_header_list "${stdc_header_list};tgmath.h;time.h;wchar.h;wctype.h")
 check_include_files("${stdc_header_list}" CAROM_STDC_HEADERS)
 
+add_subdirectory(dependencies/pybind11)
+
 # Define variables for use in generating a configure file
 if(GTEST_FOUND)
   set(CAROM_HAS_GTEST 1)
@@ -118,6 +120,7 @@ set(module_list
   BasisGenerator
   BasisReader
   BasisWriter
+  NMROM
   SVD
   IncrementalSVD
   IncrementalSVDFastUpdate
@@ -195,13 +198,16 @@ find_package(GTest 1.6.0)
 target_link_libraries(ROM
   PUBLIC ${MPI_C_LINK_FLAGS} ${MPI_C_LIBRARIES} MPI::MPI_C ${MPI_FORTRAN_LINK_FLAGS} ${MPI_FORTRAN_LIBRARIES} MPI::MPI_Fortran ${HDF5_LIBRARIES}
   ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
-  PRIVATE ${ZLIB_LIBRARIES} ZLIB::ZLIB)
+  PRIVATE ${ZLIB_LIBRARIES} ZLIB::ZLIB pybind11::embed)
 
 target_include_directories(ROM PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${HDF5_C_INCLUDE_DIRS}
   ${MPI_C_INCLUDE_DIRS}
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+
+target_compile_definitions(ROM PRIVATE -DPY_SYS_PATH="${CMAKE_HOME_DIRECTORY}/dependencies/py_env/lib/python3.9/site-packages")
 
 # Use the C++11 standard as an entire feature instead of
 # enumerating individual compiler features for simplicity
@@ -233,6 +239,7 @@ if(GTEST_FOUND)
     DEIM
     GNAT
     QDEIM
+    Pybind
     SVD
     StaticSVD
     RandomizedSVD
@@ -240,7 +247,7 @@ if(GTEST_FOUND)
   foreach(stem IN LISTS unit_test_stems)
     add_executable(test_${stem} tests/test_${stem}.C)
     target_link_libraries(test_${stem} PRIVATE ROM
-      ${MPI_C_LINK_FLAGS} ${MPI_C_LIBRARIES} MPI::MPI_C ${MPI_FORTRAN_LINK_FLAGS} ${MPI_FORTRAN_LIBRARIES} MPI::MPI_Fortran GTest::GTest)
+      ${MPI_C_LINK_FLAGS} ${MPI_C_LIBRARIES} MPI::MPI_C ${MPI_FORTRAN_LINK_FLAGS} ${MPI_FORTRAN_LIBRARIES} MPI::MPI_Fortran pybind11::embed GTest::GTest)
     target_include_directories(test_${stem}
       PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
       ${MPI_C_INCLUDE_DIRS})

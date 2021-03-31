@@ -12,6 +12,9 @@
 
 REPO_PREFIX=$(git rev-parse --show-toplevel)
 pushd ${REPO_PREFIX}/build
+
+${REPO_PREFIX}/scripts/create_py_env.sh
+
 rm -rf *
 
 if [ "$(uname)" == "Darwin" ]; then

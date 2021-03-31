@@ -12,16 +12,8 @@
 
 REPO_PREFIX=$(git rev-parse --show-toplevel)
 
-${REPO_PREFIX}/scripts/create_py_env.sh
-
-TOOLCHAIN_FILE=${REPO_PREFIX}/cmake/toolchains/ic18-toss_3_x86_64_ib-ardra.cmake
-
-mkdir ${REPO_PREFIX}/buildArdra
-pushd ${REPO_PREFIX}/buildArdra
-rm -rf *
-cmake ${REPO_PREFIX} \
-      -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
-      -DCMAKE_BUILD_TYPE=Optimized \
-      "$@"
-make VERBOSE=1 -j8
-popd
+if [ ! -d "${REPO_PREFIX}/dependencies/py_env" ]; then
+  python3 -m venv ${REPO_PREFIX}/dependencies/py_env
+  source ${REPO_PREFIX}/dependencies/py_env/bin/activate
+  pip install torch scipy
+fi
